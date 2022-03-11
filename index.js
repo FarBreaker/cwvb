@@ -4,18 +4,35 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 
 const schema = mongoose.Schema
+
+//? Declaration of user schema
 const userSchema = new schema({
     nickname: {
         type: String
     }
 })
 
+const messageSchema = new schema({
+    nickname: {
+        type: String
+    },
+    message: {
+        type: String
+    },
+    date: {
+        type: Date
+    }
+})
+
+//? Mongoose conection initialization 
 mongoose
     .connect("mongodb://mongo:27017/new", { useNewUrlParser: true })
     .then(() => console.log("MongoDB Connect"))
     .catch(err => console.log(err))
 
 const userItem = mongoose.model('user', userSchema)
+const messageItem = mongoose.model('message', messageSchema)
+
 const record1 = userItem({
     nickname: "test"
 })
@@ -36,7 +53,20 @@ app.use(bodyParser.json())
 
 //! Mongo get TestRoute
 app.get('/chat', (req, res) => {
-    userItem.find().then(rec => res.send(rec)).catch(err => res.status(500).send("internal server error"))
+    messageItem.find().then(rec => res.send(rec)).catch(err => res.status(500).send('Internal Server error'))
+    //userItem.find().then(rec => res.send(rec)).catch(err => res.status(500).send("internal server error"))
+})
+
+//! Mongo post TestRoute
+app.post('/chat', (req, res) => {
+    console.log("Receiving message...")
+    const messageRecord = messageItem({
+        nickname: req.body.nickname,
+        message: req.body.message,
+        date: req.body.date
+    })
+    messageRecord.save().then(info => console.log(`saved ${messageRecord.nickname}, ${messageRecord.message}`))
+    res.send("Message received")
 })
 
 //! Get for dipendenti
