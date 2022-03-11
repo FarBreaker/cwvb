@@ -1,0 +1,64 @@
+//? Requirments declaration
+const express = require('express');
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
+
+const schema = mongoose.Schema
+const userSchema = new schema({
+    nickname: {
+        type: String
+    }
+})
+
+mongoose
+    .connect("mongodb://mongo:27017/new", { useNewUrlParser: true })
+    .then(() => console.log("MongoDB Connect"))
+    .catch(err => console.log(err))
+
+const userItem = mongoose.model('user', userSchema)
+const record1 = userItem({
+    nickname: "test"
+})
+record1.save().then(info => console.log(`record ${record1.nickname}`))
+
+//? Map to store user in key value pair
+const users = new Map();
+
+//? Consts Server configuration
+const PORT = 8080;
+const HOST = '0.0.0.0'
+
+//?  App initialization
+const app = express()
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
+
+
+//! Mongo get TestRoute
+app.get('/chat', (req, res) => {
+    userItem.find().then(rec => res.send(rec)).catch(err => res.status(500).send("internal server error"))
+})
+
+//! Get for dipendenti
+app.get('/', (req, res) => {
+    let dipendenti =
+        [
+            { azienda: "taal", nome: "francesco", cognome: "ferrari", competenze: ["HTML", "CSS", "React", 'Javascript'], annoDiNascita: 1997 },
+            { azienda: "taal", nome: "lorenzo", cognome: "ciani", competenze: ["HTML", "CSS", "Node", 'Docker'], annoDiNascita: 1998 },
+            { azienda: "taal", nome: "niko", cognome: "blasi", competenze: ["undefined"], annoDiNascita: 1997 },
+            { azienda: "taal", nome: "calogero", cognome: "miraglia", competenze: ["HTML", "CSS", "React", 'Typescript', "tutto il resto"], annoDiNascita: 1996 }
+        ]
+    res.json({ dipendenti })
+});
+//! Post to insert in map
+app.post('/', (req, res) => {
+    console.log('Receiving data...')
+    users.set(req.body.nickname, req.body.desc)
+    res.send('Data received')
+})
+//! Get to read from map
+app.get("/getDesc", (req, res) => {
+    res.send(users.get(req.query.nickname))
+})
+app.listen(PORT, HOST)
+console.log(`Running on http://${HOST}:${PORT}`)
