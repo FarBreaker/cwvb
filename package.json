@@ -1,6 +1,6 @@
 {
   "name": "docker-express",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "testing containers",
   "main": "index.js",
   "scripts": {
