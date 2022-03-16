@@ -52,12 +52,17 @@ const CHATS = new schema({
     chatName: {
         type: String,
         default: ""
+    },
+    welcomeMessage: {
+        type: String,
+        default: "Benvenuti nella chat"
     }
+
 })
 
 //? Mongoose connection initialization 
 mongoose
-    .connect("mongodb://localhost:27017/new", { useNewUrlParser: true })
+    .connect("mongodb://localhost:27017/chat", { useNewUrlParser: true })
     .then(() => console.log("MongoDB Connect"))
     .catch(err => console.log(err))
 const chatItem = mongoose.model("chat", CHATS)
@@ -82,27 +87,28 @@ app.use(bodyParser.json())
 //* Route to create a new user
 app.post("/createUser", (req, res) => {
     const date = req.body.date ? req.body.date : Date.now()
-    if (userItem.findOne(req.body.name)) {
-        res.status(531).send("User already exists")
-    } else {
-        const userRecord = userItem({
-            name: req.body.name,
-            data: {
-                createdAt: date
-            },
-        })
-        userRecord.save().then(info => console.log('Saved'))
-        res.send("User Correctly created")
-    }
-})
+    userItem.findOne({ name: req.body.name }, (err, user) => {
+        if (user) res.status(531).send(`${user.name} already exists`)
+        else {
+            const userRecord = userItem({
+                name: req.body.name,
+                data: {
+                    createdAt: date
+                },
+            })
+            userRecord.save().then(info => console.log('Saved'))
+            res.send("User Correctly created")
+        }
+    })
+}
+)
 
 //* Route to login 
 app.post('/loginUser', (req, res) => {
-    if (!userItem.findOne(req.body.name)) {
-        res.status(532).send("This user does not exist")
-    } else {
-        res.send("OK")
-    }
+    userItem.findOne({ name: req.body.name }, (err, user) => {
+        if (user) res.status(200).send(`${user.name} found, you may now login`)
+        else res.status(404).send(`${req.body.name} Not found `)
+    })
 })
 
 //TODO Remove this 
@@ -113,38 +119,31 @@ app.get('/getUsers', (req, res) => {
 //* Route to open a new chat
 app.post('/openChat', (req, res) => {
     let name
-    const members = req.body.members
+    let members = req.body.members ? req.body.members : []
     members.push(req.body.sender)
-    req.body.name ? name = req.body.name : name = ""
+    name = req.body.name ? req.body.name : name = ""
 
     const chatRecord = chatItem({
         sender: req.body.sender,
         members: members,
-        re
-
+        chatName: name,
     })
 
-    res.send("Chat correctly opened ...")
+    chatRecord.save((err, obj) => {
+        console.log(obj.id, obj.members)
+        if (err) res.status(532).send(`NO NO NO ${user.name}-san, non si apre così una chat`)
+        userItem.updateMany({ $where: () => { name: name in obj.members } }, { chats: obj.id }).then((res, err) => console.log(res))
+    })
+    res.status(200).send("Chat correctly opened ...")
 })
+
 
 
 //* Route to retrieve all open chat
 app.get("/getOpenChat", (req, res) => {
-    res.send("Completed data sending ...")
+    chatItem.find().then(rec => res.send(rec)).catch(err => res.status(500).send("Internal Server error"))
+    // res.send("Completed data sending ...")
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 app.listen(PORT, HOST)
