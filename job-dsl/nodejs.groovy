@@ -1,4 +1,4 @@
-job('Test DSL'){
+job('DSL'){
     scm {
         git('https://github.com/FarBreaker/cwvb.git'){ node->
         node / gitConfigName('FarBreaker')
