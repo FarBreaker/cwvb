@@ -15,7 +15,7 @@ job('DSL'){
         dockerBuildAndPublish{
             repositoryName('farbreaker/docker-demo')
             tag('${GIT_REVISION,lenght=9}')
-            registryCredential('dockerhub')
+            registryCredentials('dockerhub')
             forcePull(false)
             forceTag(false)
             createFingerprints(false)
