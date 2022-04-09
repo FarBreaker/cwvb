@@ -1,4 +1,4 @@
-job('DSL'){
+job('DSL Docker'){
     scm {
         git('https://github.com/FarBreaker/cwvb.git'){ node->
         node / gitConfigName('FarBreaker')
